@@ -1,0 +1,3 @@
+min_transaction = 1
+max_transaction = 200
+num_traders = 12
