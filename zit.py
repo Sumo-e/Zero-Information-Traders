@@ -1,15 +1,17 @@
 import random
 
+###############################  Config  ###############################
 with open("config.txt", 'r') as f:
     config = f.readlines()
     config = [line.strip() for line in config]
-    # Create a dictionary where key is a variable and value is last words 
-    # (i.e. value of respective variable) from that line
+    # Create a dictionary where key is a variable and value is last
+    # words (i.e. value of respective variable) from that line
     f_dict = {line.split()[0]: int(line.split()[-1]) for line in config}
     print(f_dict)
 
 max_price = f_dict['max_price']
 min_price = f_dict['min_price']
+###########################  End of Config  ############################
 
 class Trader:
     def __init__(self, name: str = '', bidder: bool = True, redemptions_or_costs: list[int] = [], constrained: bool = True):
