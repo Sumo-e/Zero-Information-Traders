@@ -1,4 +1,6 @@
+
 # Fra
 *.pdf
 .venv
+__pycache__
 test.py
