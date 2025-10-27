@@ -1,4 +1,6 @@
 import random
+import matplotlib.pyplot as plt
+import graphs
 
 ###############################  Config  ###############################
 with open("config.txt", 'r') as f:
@@ -46,15 +48,17 @@ class Trader:
             self.profits.append(price - current_value)
         return self.profits
 
-def market(list_of_traders: list[Trader] = []):
+def market(list_of_traders: list[Trader] = []) -> list:
     if list_of_traders == []:
-        print("Empty list")
-        return
+        raise ValueError("Empty list")
+    # I hate mutability
+    list_of_traders = list_of_traders.copy()
 
     # Initializing these values
     bid = min_price - 1 # All bids will be higher than this
     ask = max_price + 1 # All asks will be lower than this
     price = 0
+    transaction_prices = []
 
     # Checking if there's at least one bidder and at least one seller
     bidders =  [i.is_bidder for i in list_of_traders]
@@ -92,6 +96,8 @@ def market(list_of_traders: list[Trader] = []):
         if bid >= ask:
             last_bidder.transact(price)
             last_seller.transact(price)
+            transaction_prices.append(price)
+
             print(f"{bid:3}\t"
                   f"{last_bidder.name[:7]:^7}\t"
                   f"{ask:3}\t"
@@ -102,18 +108,24 @@ def market(list_of_traders: list[Trader] = []):
             )
 
             # Re-initializing the values
-            bid = 0
-            ask = 201
+            bid = min_price - 1
+            ask = max_price + 1
             price = 0
 
+    return transaction_prices
+
+##################################  Example  ##################################
 
 b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [110, 100, 90])
 b2 = Trader(name = 'b2', bidder = True, redemptions_or_costs = [115, 105, 95])
 s1 = Trader(name = 's1', bidder = False, redemptions_or_costs = [80, 85, 90])
 s2 = Trader(name = 's2', bidder = False, redemptions_or_costs = [75, 80, 85])
 
+traders = [b1, b2, s1, s2]
+
 print("Transaction ledger:")
 print("Bid\tBidder\tAsk\tSeller\tPrice\tBidder profit\tSeller profit")
+transaction_prices = market(traders)
 
-
-market([b1, b2, s1, s2])
+# Graphs
+graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=min_price, max_price=max_price)
