@@ -11,7 +11,6 @@ with open("config.txt", 'r') as f:
     # Create a dictionary where key is a variable and value is last
     # words (i.e. value of respective variable) from that line
     f_dict = {line.split()[0]: int(line.split()[-1]) for line in config}
-    print(f_dict)
 
 max_price = f_dict['max_price']
 min_price = f_dict['min_price']
@@ -50,7 +49,7 @@ class Trader:
             self.profits.append(price - current_value)
         return self.profits
 
-def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1) -> list:
+def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quiet: bool = True) -> list:
     if traders == []:
         raise ValueError("Empty list")
 
@@ -65,6 +64,10 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1) -> l
         # Need to do this in order to not keep using the original traders
         list_of_traders = copy.deepcopy(traders)
 
+        if quiet != True:
+            print(f"Transaction ledger {p}:")
+            print("Bid\tBidder\tAsk\tSeller\tPrice\tBidder profit\tSeller profit")
+
         # Keep track of prices in each period
         period_prices = []
 
@@ -74,9 +77,10 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1) -> l
         bidders =  [i.is_bidder for i in list_of_traders]
         while True in bidders and False in bidders:
             # Checking if timed out
-            if time.time() > start + timeout:
-                print(TimeoutError(f"Timed out at {timeout} seconds."))
+            if (time.time() > start + timeout):
                 transaction_prices.append(period_prices)
+                if quiet != True:
+                    print(TimeoutError(f"Timed out at {timeout} seconds."))
                 break
 
             # Random draw
@@ -86,7 +90,8 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1) -> l
             if len(trader.profits) == len(trader.redemptions_or_costs):
                 # Removes the specific trader from the pool
                 list_of_traders.remove(trader)
-                print(f"~~~{trader.name} was removed with {trader.profits=}")
+                if quiet != True:
+                    print(f"~~~{trader.name} was removed with {trader.profits=}")
                 # There is one less bidder (or seller) in the pool
                 bidders.pop(trader.is_bidder)
                 continue
@@ -113,14 +118,15 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1) -> l
                 last_seller.transact(price)
                 period_prices.append(price)
 
-                print(f"{bid:3}\t"
-                    f"{last_bidder.name[:7]:^7}\t"
-                    f"{ask:3}\t"
-                    f"{last_seller.name[:7]:^7}\t"
-                    f"{price:4}\t"
-                    f"{last_bidder.profits[-1]:7}\t\t"
-                    f"{last_seller.profits[-1]:7}"
-                )
+                if quiet != True:
+                    print(f"{bid:3}\t"
+                        f"{last_bidder.name[:7]:^7}\t"
+                        f"{ask:3}\t"
+                        f"{last_seller.name[:7]:^7}\t"
+                        f"{price:4}\t"
+                        f"{last_bidder.profits[-1]:7}\t\t"
+                        f"{last_seller.profits[-1]:7}"
+                    )
 
                 # Re-initializing the values
                 bid = min_price - 1
@@ -144,15 +150,7 @@ s2 = Trader(name = 's2', bidder = False, redemptions_or_costs = [_ for _ in rang
 
 traders = [b1, b2, s1, s2] 
 
-transaction_prices = market(traders, timeout=1, periods=6)
-print(transaction_prices)
-
-#periods = 6
-#transaction_prices = []
-#for p in range(periods):
-#    print(f"Transaction ledger {p}:")
-#    print("Bid\tBidder\tAsk\tSeller\tPrice\tBidder profit\tSeller profit")
-#    transaction_prices.append( market(traders, timeout = 1) )
+transaction_prices = market(traders, timeout=1, periods=6, quiet = True)
 
 # Graphs
 graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=min_price, max_price=max_price)

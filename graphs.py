@@ -66,7 +66,6 @@ def plot_supply_demand(list_of_traders, min_price=None, max_price=None, ax=None)
     ax = ax or plt.gca()
 
     costs, redemptions = values_from_traders(list_of_traders)
-    print(f"{costs=}\n{redemptions=}")
     equilibrium_quantity, equilibrium_price = find_equilibrium(costs, redemptions)
 
     # Funny stuff to graph things correctly
@@ -135,8 +134,6 @@ def plot_transactions(transaction_history, equilibrium_price: None|int|float = N
     ax.plot(range(1, len(transaction_history)+1), transaction_history)
 
     if type(period_lengths) != None:
-        print(f"{transaction_history=}")
-        print(f"{period_lengths=}")
         plt.vlines(period_lengths[:-1],
                    ymin=min_price,
                    ymax=max_price,
