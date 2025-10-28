@@ -1,6 +1,7 @@
 import random
 import matplotlib.pyplot as plt
 import graphs
+import time
 
 ###############################  Config  ###############################
 with open("config.txt", 'r') as f:
@@ -48,7 +49,7 @@ class Trader:
             self.profits.append(price - current_value)
         return self.profits
 
-def market(list_of_traders: list[Trader] = []) -> list:
+def market(list_of_traders: list[Trader] = [], timeout: int = 30) -> list:
     if list_of_traders == []:
         raise ValueError("Empty list")
     # I hate mutability
@@ -59,11 +60,17 @@ def market(list_of_traders: list[Trader] = []) -> list:
     ask = max_price + 1 # All asks will be lower than this
     price = 0
     transaction_prices = []
+    start = time.time()
 
     # Checking if there's at least one bidder and at least one seller
     bidders =  [i.is_bidder for i in list_of_traders]
 
     while True in bidders and False in bidders:
+
+        if time.time() > start + timeout:
+            print(TimeoutError(f"Timed out at {timeout} seconds."))
+            return transaction_prices
+
         # Random draw
         trader = random.choice(list_of_traders)
 
@@ -121,11 +128,17 @@ b2 = Trader(name = 'b2', bidder = True, redemptions_or_costs = [115, 105, 95])
 s1 = Trader(name = 's1', bidder = False, redemptions_or_costs = [80, 85, 90])
 s2 = Trader(name = 's2', bidder = False, redemptions_or_costs = [75, 80, 85])
 
+b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [_ for _ in range(110, 110-50, -1)])
+b2 = Trader(name = 'b2', bidder = True, redemptions_or_costs = [_ for _ in range(115, 115-50, -1)])
+s1 = Trader(name = 's1', bidder = False, redemptions_or_costs = [_ for _ in range(80, 80+50)])
+s2 = Trader(name = 's2', bidder = False, redemptions_or_costs = [_ for _ in range(75, 75+50)])
+
 traders = [b1, b2, s1, s2]
 
 print("Transaction ledger:")
 print("Bid\tBidder\tAsk\tSeller\tPrice\tBidder profit\tSeller profit")
-transaction_prices = market(traders)
+
+transaction_prices = market(traders, timeout=3)
 
 # Graphs
 graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=min_price, max_price=max_price)
