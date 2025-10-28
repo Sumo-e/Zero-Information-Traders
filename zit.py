@@ -5,6 +5,8 @@ import time
 import copy
 
 ###############################  Config  ###############################
+random.seed(1)
+
 with open("config.txt", 'r') as f:
     config = f.readlines()
     config = [line.strip() for line in config]
@@ -16,6 +18,8 @@ max_price = int(f_dict['max_price'])
 min_price = int(f_dict['min_price'])
 num_traders = int(f_dict['num_traders'])
 num_commodities = int(f_dict['num_commodities'])
+periods = int(f_dict['periods'])
+timeout = int(f_dict['timeout'])
 constrained = bool(f_dict['constrained'])
 print(f_dict)
 
@@ -150,7 +154,6 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
 
         # This is so if all the bidders and sellers are exhausted prices still get recorded
         transaction_prices.append(period_prices)
-        print(f"Period {p + 1} {transaction_prices=}")
     return transaction_prices
 
 # Makes the traders
@@ -174,7 +177,7 @@ for _ in range(num_traders//2):
         constrained=constrained)
     traders.append(t)
 
-transaction_prices = market(traders, timeout=1, periods=6, quiet=False)
+transaction_prices = market(traders, timeout=timeout, periods=periods, quiet=True)
 graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=min_price, max_price=max_price)
 
 ##################################  Example  ##################################

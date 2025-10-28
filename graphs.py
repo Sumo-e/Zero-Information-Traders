@@ -47,30 +47,25 @@ def find_equilibrium(costs, redemptions) -> tuple:
     if type(redemptions) != list:
         raise ValueError("Redemptions must be a list")
 
-    # Dashed lines for equilibrium
-    # Should already be sorted but just in case
-    sorted_costs = sorted(costs)
-    sorted_redemptions = sorted(redemptions, reverse=True)
+    costs = sorted(costs)
+    redemptions = sorted(redemptions, reverse=True)
 
-    # Gets the first number where offers cross if they do cross
-    for i in range(len(costs)):
-        # Is costs[i] >= redemptions[i]?
-        if costs[i] >= redemptions[i]:
-            # Check which value is horizontal (eq. price) and which is vertical (eq. quantity)
-            if costs[i] == costs[i - 1]:
-                equilibrium_price = costs[i]
-                equilibrium_quantity = sorted_redemptions.index(redemptions[i])
-            elif redemptions[i] == redemptions[i - 1]:
-                equilibrium_price = redemptions[i]
-                equilibrium_quantity = sorted_costs.index(costs[i])
-            # If two values overlap, can just use either one
-            else:
-                equilibrium_price = costs[i]
-                equilibrium_quantity = sorted_costs.index(equilibrium_price)
-            break
+    for i in range(len(redemptions)):
+        # When the values overlap normally
+        if redemptions[i] == costs[i]:
+            eq_p = redemptions[i]
+            eq_q = i
+            return (eq_q, eq_p)
+            
+        # Of the lowest rungs, price becomes the highest (highest price limits)
+        if redemptions[i] < costs[i]:
+            eq_p = max(redemptions[i], costs[i-1])
+            eq_q = i
+            return (eq_q, eq_p)
 
-    return (equilibrium_quantity, equilibrium_price)
-    
+    # If an equilibrium can't be found, this should hide that
+    return (-1, -1)
+
 def plot_supply_demand(list_of_traders, min_price=None, max_price=None, ax=None):
     # Gets the current axis, useful in order to plot this graph on its own or
     # next to another graph
