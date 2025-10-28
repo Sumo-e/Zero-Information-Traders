@@ -10,10 +10,16 @@ with open("config.txt", 'r') as f:
     config = [line.strip() for line in config]
     # Create a dictionary where key is a variable and value is last
     # words (i.e. value of respective variable) from that line
-    f_dict = {line.split()[0]: int(line.split()[-1]) for line in config}
+    f_dict = {line.split()[0]: line.split()[-1] for line in config}
 
-max_price = f_dict['max_price']
-min_price = f_dict['min_price']
+max_price = int(f_dict['max_price'])
+min_price = int(f_dict['min_price'])
+num_traders = int(f_dict['num_traders'])
+constrained = bool(f_dict['constrained'])
+print(f_dict)
+
+if num_traders % 2 != 0:
+    raise ValueError("The number of traders must be even (should be the same number of buyers as bidders). Change 'num_traders'")
 ###########################  End of Config  ############################
 
 class Trader:
@@ -21,7 +27,14 @@ class Trader:
         self.name = name
         self.constrained = constrained
         self.is_bidder = bidder
-        self.redemptions_or_costs = redemptions_or_costs
+
+        # If it's a bidder, then redemption values are decreasing for each additional unit
+        if self.is_bidder:
+            self.redemptions_or_costs = sorted(redemptions_or_costs, reverse=True)
+        # If it's a seller, then costs are increasing for each additional unit
+        else:
+            self.redemptions_or_costs = sorted(redemptions_or_costs)
+
         self.profits: list[int] = []
         self.offer = self.gen_offer()
 
@@ -136,21 +149,45 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
         transaction_prices.append(period_prices)
     return transaction_prices
 
-##################################  Example  ##################################
+# Makes the traders
+traders = []
+# Bidders
+for _ in range(num_traders//2):
+    redemptions = [random.randint(min_price, max_price) for _ in range(num_traders)]
+    t = Trader(
+        name=f"b{_}",
+        bidder=True,
+        redemptions_or_costs=redemptions,
+        constrained=constrained)
+    traders.append(t)
+# Sellers
+for _ in range(num_traders//2):
+    costs = [random.randint(min_price, max_price) for _ in range(num_traders)]
+    t = Trader(
+        name=f"s{_}",
+        bidder=False,
+        redemptions_or_costs=costs,
+        constrained=constrained)
+    traders.append(t)
 
-b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [110, 100, 90])
-b2 = Trader(name = 'b2', bidder = True, redemptions_or_costs = [115, 105, 95])
-s1 = Trader(name = 's1', bidder = False, redemptions_or_costs = [80, 85, 90])
-s2 = Trader(name = 's2', bidder = False, redemptions_or_costs = [75, 80, 85])
-
-b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [_ for _ in range(110, 110-20, -1)])
-b2 = Trader(name = 'b2', bidder = True, redemptions_or_costs = [_ for _ in range(115, 115-20, -1)])
-s1 = Trader(name = 's1', bidder = False, redemptions_or_costs = [_ for _ in range(80, 80+20)])
-s2 = Trader(name = 's2', bidder = False, redemptions_or_costs = [_ for _ in range(75, 75+20)])
-
-traders = [b1, b2, s1, s2] 
-
-transaction_prices = market(traders, timeout=1, periods=6, quiet = True)
-
-# Graphs
+transaction_prices = market(traders, timeout=1, periods=6, quiet=False)
 graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=min_price, max_price=max_price)
+
+##################################  Example  ##################################
+#
+#b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [110, 100, 90])
+#b2 = Trader(name = 'b2', bidder = True, redemptions_or_costs = [115, 105, 95])
+#s1 = Trader(name = 's1', bidder = False, redemptions_or_costs = [80, 85, 90])
+#s2 = Trader(name = 's2', bidder = False, redemptions_or_costs = [75, 80, 85])
+#
+#b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [_ for _ in range(110, 110-10, -1)])
+#b2 = Trader(name = 'b2', bidder = True, redemptions_or_costs = [_ for _ in range(115, 115-10, -1)])
+#s1 = Trader(name = 's1', bidder = False, redemptions_or_costs = [_ for _ in range(80, 80+10)])
+#s2 = Trader(name = 's2', bidder = False, redemptions_or_costs = [_ for _ in range(75, 75+10)])
+#
+#traders = [b1, b2, s1, s2] 
+#
+#transaction_prices = market(traders, timeout=1, periods=6, quiet = False)
+#
+## Graphs
+#graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=min_price, max_price=max_price)
