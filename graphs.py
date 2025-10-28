@@ -50,12 +50,11 @@ def find_equilibrium(costs, redemptions) -> tuple:
     # Dashed lines for equilibrium
     # Should already be sorted but just in case
     sorted_costs = sorted(costs)
-    sorted_redemptions = sorted(redemptions)
+    sorted_redemptions = sorted(redemptions, reverse=True)
 
     # Gets the first number where offers cross if they do cross
     equilibrium_price = [i
-                        for i in sorted_costs
-                        for j in sorted_redemptions
+                        for i, j in zip(sorted_costs, sorted_redemptions)
                         if i == j][0]
     equilibrium_quantity = sorted_costs.index(equilibrium_price)
 
@@ -67,6 +66,7 @@ def plot_supply_demand(list_of_traders, min_price=None, max_price=None, ax=None)
     ax = ax or plt.gca()
 
     costs, redemptions = values_from_traders(list_of_traders)
+    print(f"{costs=}\n{redemptions=}")
     equilibrium_quantity, equilibrium_price = find_equilibrium(costs, redemptions)
 
     # Funny stuff to graph things correctly
@@ -105,28 +105,50 @@ def plot_supply_demand(list_of_traders, min_price=None, max_price=None, ax=None)
     if ax == None:
         plt.show()
 
-def plot_transactions(prices, equilibrium_price: None|int|float = None, min_price = None, max_price = None, ax = None):
+def plot_transactions(transaction_history, equilibrium_price: None|int|float = None, min_price = None, max_price = None, ax = None):
     # Gets the current axis, useful in to plot this graph on its own or
     # next to another graph
     ax = ax or plt.gca()
 
-    # x range goes from 1 to len(prices)+1
-    ax.plot(range(1, len(prices)+1), prices)
+    # If a list of lists is given, we know that we're graphing more than 1 period
+    if type(transaction_history[0]) == list:
+        enum = enumerate(transaction_history)
+        # Flatten the list of lists of transactions
+        transaction_history = [
+            price
+            for period in transaction_history
+            for price in period
+        ]
+        # Find the length of the periods (0.5 makes line go between end/beginning of two periods)
+        period_lengths = [len(periods) + 0.5 for _, periods in enum]
+        for i in range(1, len(period_lengths)):
+            period_lengths[i] += period_lengths[i-1]
+    
+    # Making the graph a little prettier
+    ax.set_xlim(1, len(transaction_history))
+    if min_price == None:
+        min_price = min(transaction_history) - 1
+    if max_price == None:
+        max_price = max(transaction_history) + 1
+    ax.set_ylim(min_price, max_price)
+    # x range goes from 1 to len(transaction_history)+1
+    ax.plot(range(1, len(transaction_history)+1), transaction_history)
+
+    if type(period_lengths) != None:
+        print(f"{transaction_history=}")
+        print(f"{period_lengths=}")
+        plt.vlines(period_lengths[:-1],
+                   ymin=min_price,
+                   ymax=max_price,
+                   color='black',
+                   linestyles='dashed')
 
     if type(equilibrium_price) != None:
         ax.hlines(y=equilibrium_price,  # Ignore dumb error
                 xmin=1,
-                xmax=len(prices)+1,
+                xmax=len(transaction_history)+1,
                 color='black')
     
-    # Making the graph a little prettier
-    ax.set_xlim(1, len(prices))
-    if min_price == None:
-        min_price = min(prices) - 1
-    if max_price == None:
-        max_price = max(prices) + 1
-    ax.set_ylim(min_price, max_price)
-
     if ax == None:
         plt.show()
 
