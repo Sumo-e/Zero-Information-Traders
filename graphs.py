@@ -53,10 +53,21 @@ def find_equilibrium(costs, redemptions) -> tuple:
     sorted_redemptions = sorted(redemptions, reverse=True)
 
     # Gets the first number where offers cross if they do cross
-    equilibrium_price = [i
-                        for i, j in zip(sorted_costs, sorted_redemptions)
-                        if i == j][0]
-    equilibrium_quantity = sorted_costs.index(equilibrium_price)
+    for i in range(len(costs)):
+        # Is costs[i] >= redemptions[i]?
+        if costs[i] >= redemptions[i]:
+            # Check which value is horizontal (eq. price) and which is vertical (eq. quantity)
+            if costs[i] == costs[i - 1]:
+                equilibrium_price = costs[i]
+                equilibrium_quantity = sorted_redemptions.index(redemptions[i])
+            elif redemptions[i] == redemptions[i - 1]:
+                equilibrium_price = redemptions[i]
+                equilibrium_quantity = sorted_costs.index(costs[i])
+            # If two values overlap, can just use either one
+            else:
+                equilibrium_price = costs[i]
+                equilibrium_quantity = sorted_costs.index(equilibrium_price)
+            break
 
     return (equilibrium_quantity, equilibrium_price)
     
@@ -120,6 +131,7 @@ def plot_transactions(transaction_history, equilibrium_price: None|int|float = N
         ]
         # Find the length of the periods (0.5 makes line go between end/beginning of two periods)
         period_lengths = [len(periods) + 0.5 for _, periods in enum]
+
         for i in range(1, len(period_lengths)):
             period_lengths[i] += period_lengths[i-1]
     
@@ -140,6 +152,7 @@ def plot_transactions(transaction_history, equilibrium_price: None|int|float = N
                    color='black',
                    linestyles='dashed')
 
+    # If the equilibrium price is given, then graph it
     if type(equilibrium_price) != None:
         ax.hlines(y=equilibrium_price,  # Ignore dumb error
                 xmin=1,

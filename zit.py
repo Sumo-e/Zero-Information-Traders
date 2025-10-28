@@ -15,6 +15,7 @@ with open("config.txt", 'r') as f:
 max_price = int(f_dict['max_price'])
 min_price = int(f_dict['min_price'])
 num_traders = int(f_dict['num_traders'])
+num_commodities = int(f_dict['num_commodities'])
 constrained = bool(f_dict['constrained'])
 print(f_dict)
 
@@ -78,7 +79,7 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
         list_of_traders = copy.deepcopy(traders)
 
         if quiet != True:
-            print(f"Transaction ledger {p}:")
+            print(f"Transaction ledger {p+1}:")
             print("Bid\tBidder\tAsk\tSeller\tPrice\tBidder profit\tSeller profit")
 
         # Keep track of prices in each period
@@ -88,13 +89,7 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
 
         # Checking if there's at least one bidder and at least one seller
         bidders =  [i.is_bidder for i in list_of_traders]
-        while True in bidders and False in bidders:
-            # Checking if timed out
-            if (time.time() > start + timeout):
-                transaction_prices.append(period_prices)
-                if quiet != True:
-                    print(TimeoutError(f"Timed out at {timeout} seconds."))
-                break
+        while (True in bidders and False in bidders) and (time.time() < start + timeout):
 
             # Random draw
             trader = random.choice(list_of_traders)
@@ -145,15 +140,24 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
                 bid = min_price - 1
                 ask = max_price + 1
                 price = 0
+            
+        # Check why the auction finished
+        if quiet != True:
+            if time.time() > start + timeout:
+                print(TimeoutError(f"Timed out at {timeout} seconds."))
+            else:
+                print("Buyers/Sellers exhausted their supports")
+
         # This is so if all the bidders and sellers are exhausted prices still get recorded
         transaction_prices.append(period_prices)
+        print(f"Period {p + 1} {transaction_prices=}")
     return transaction_prices
 
 # Makes the traders
 traders = []
 # Bidders
 for _ in range(num_traders//2):
-    redemptions = [random.randint(min_price, max_price) for _ in range(num_traders)]
+    redemptions = [random.randint(min_price, max_price) for _ in range(num_commodities)]
     t = Trader(
         name=f"b{_}",
         bidder=True,
@@ -162,7 +166,7 @@ for _ in range(num_traders//2):
     traders.append(t)
 # Sellers
 for _ in range(num_traders//2):
-    costs = [random.randint(min_price, max_price) for _ in range(num_traders)]
+    costs = [random.randint(min_price, max_price) for _ in range(num_commodities)]
     t = Trader(
         name=f"s{_}",
         bidder=False,
@@ -174,7 +178,6 @@ transaction_prices = market(traders, timeout=1, periods=6, quiet=False)
 graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=min_price, max_price=max_price)
 
 ##################################  Example  ##################################
-#
 #b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [110, 100, 90])
 #b2 = Trader(name = 'b2', bidder = True, redemptions_or_costs = [115, 105, 95])
 #s1 = Trader(name = 's1', bidder = False, redemptions_or_costs = [80, 85, 90])
@@ -187,7 +190,15 @@ graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=trans
 #
 #traders = [b1, b2, s1, s2] 
 #
-#transaction_prices = market(traders, timeout=1, periods=6, quiet = False)
+#b1 = Trader(name='b1', bidder=True, redemptions_or_costs=[100, 50, 50, 25])
+#s1 = Trader(name='s1', bidder=False, redemptions_or_costs=[23, 49, 51, 75])
+#
+#traders = [b1, s1]
+#
+#transaction_prices = market(traders, timeout=1, periods=3, quiet = False)
+#print(f"{transaction_prices=}")
 #
 ## Graphs
+#graphs.plot_transactions(transaction_prices)
+#plt.show()
 #graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=min_price, max_price=max_price)

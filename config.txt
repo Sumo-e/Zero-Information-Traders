@@ -1,5 +1,5 @@
 min_price = 1
 max_price = 200
-num_traders = 12
+num_traders = 6
 num_commodities = 20
 constrained = True
