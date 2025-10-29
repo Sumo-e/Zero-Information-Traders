@@ -14,5 +14,11 @@ redemption_values = []
 [misc]
 num_commodities = 25
 timeout = 1
+# Set to 0 for no seed
 random_seed = 0
 quiet = true
+# 0 for no graphs
+# 1 for supply/demand graph
+# 2 for transactions graph
+# 3 for both graphs
+graphs = 3

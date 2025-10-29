@@ -40,7 +40,19 @@ for _ in range(config.num_traders//2):
     traders.append(t)
 
 transaction_prices = market.market(traders, timeout=config.timeout, periods=config.periods, quiet=config.quiet)
-graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=config.min_price, max_price=config.max_price)
+
+# Checks which graphs to plot based off of config.graphs
+if config.graphs == 1:
+    costs, redemptions = graphs.values_from_traders(traders)
+    graphs.plot_supply_demand(costs, redemptions, min_price=config.min_price, max_price=config.max_price)
+if config.graphs == 2:
+    costs, redemptions = graphs.values_from_traders(traders)
+    equilibrium_price = graphs.find_equilibrium(costs, redemptions)[1]
+    graphs.plot_transactions(transaction_prices, equilibrium_price=equilibrium_price, min_price=config.min_price, max_price=config.max_price)
+if config.graphs == 3:
+    costs, redemptions = graphs.values_from_traders(traders)
+    equilibrium_price = graphs.find_equilibrium(costs, redemptions)[1]
+    graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=config.min_price, max_price=config.max_price)
 
 ##################################  Example  ##################################
 #b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [110, 100, 90])

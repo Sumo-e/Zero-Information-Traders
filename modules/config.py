@@ -20,10 +20,11 @@ with open('config.toml', 'rb') as f:
     timeout = int(config['misc']['timeout'])
     quiet = bool(config['misc']['quiet'])
     random_seed = config['misc']['random_seed']
+    graphs = int(config['misc']['graphs'])
 
 # Validation and setting defaults
 if type(random_seed) not in  (int, float, str, bytes, bytearray):
-    raise ValueError("The only supported types for random_seed are: int, float, str, bytes, and bytearray")
+    raise TypeError("The only supported types for random_seed are: int, float, str, bytes, and bytearray")
 if random_seed == 0:
     random_seed = None
 random.seed(random_seed)
@@ -49,3 +50,6 @@ if len(costs) == 0:
     costs = None
 if len(redemption_values) == 0:
     redemption_values = None
+
+if graphs not in [0, 1, 2, 3]:
+    raise ValueError("")

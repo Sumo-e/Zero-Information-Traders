@@ -62,6 +62,12 @@ def find_equilibrium(costs, redemptions) -> tuple:
     return (-1, -1)
 
 def plot_supply_demand(costs, redemptions, min_price=None, max_price=None, ax=None):
+    # Is this being graphed on its own?
+    if ax == None:
+        single_graph = True
+    else:
+        single_graph = False
+
     # Gets the current axis, useful in order to plot this graph on its own or
     # next to another graph
     ax = ax or plt.gca()
@@ -101,10 +107,16 @@ def plot_supply_demand(costs, redemptions, min_price=None, max_price=None, ax=No
             linestyles='dashed')
 
     # Prevents plotting too early when doing the side-by-side plot
-    if ax == None:
+    if single_graph == True:
         plt.show()
 
 def plot_transactions(transaction_history, equilibrium_price: None|int = None, min_price = None, max_price = None, ax = None):
+    # Is this being graphed on its own?
+    if ax == None:
+        single_graph = True
+    else:
+        single_graph = False
+
     # Gets the current axis, useful in to plot this graph on its own or
     # next to another graph
     ax = ax or plt.gca()
@@ -148,7 +160,7 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
                 xmax=len(transaction_history)+1,
                 color='black')
     
-    if ax == None:
+    if single_graph == True:
         plt.show()
 
 def plot_supply_demand_and_transactions(list_of_traders, prices, min_price = None, max_price = None):
@@ -156,7 +168,8 @@ def plot_supply_demand_and_transactions(list_of_traders, prices, min_price = Non
 
     costs, redemptions = values_from_traders(list_of_traders)
     plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax1)
-    plot_transactions(prices, equilibrium_price=find_equilibrium(costs, redemptions)[1], min_price=min_price, max_price=max_price, ax=ax2)
+    equilibrium_price = find_equilibrium(costs, redemptions)[1]
+    plot_transactions(prices, equilibrium_price=equilibrium_price, min_price=min_price, max_price=max_price, ax=ax2)
     plt.show()
 
 # Examples
