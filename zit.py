@@ -3,8 +3,8 @@ import modules.market as market
 import modules.graphs as graphs
 import random
 
-if config.random_seed != None:
-    random.seed(config.random_seed)
+# If config.random_seed is None, then it just won't do anything
+random.seed(config.random_seed)
 
 # Makes the traders
 traders = []
@@ -25,19 +25,18 @@ for _ in range(config.num_traders//2):
     traders.append(t)
 # Sellers
 for _ in range(config.num_traders//2):
-
     # If no costs are given, we can just make them up
     if config.costs == None:
         costs = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
     else:
         costs = config.costs
 
-    costs = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
     t = market.Trader(
         name=f"s{_}",
         bidder=False,
         redemptions_or_costs=costs,
         constrained=config.constrained)
+
     traders.append(t)
 
 transaction_prices = market.market(traders, timeout=config.timeout, periods=config.periods, quiet=config.quiet)

@@ -5,16 +5,14 @@ def values_from_traders(list_of_traders) -> tuple:
     bidders = [_ for _ in list_of_traders if _.is_bidder]
     sellers = [_ for _ in list_of_traders if not _.is_bidder]
 
-    # Throw all the costs in a list and sort them, then prepend a 0 for 
-    # graphing
+    # Throw all the costs in a list and sort them
     costs = [
         cost
         for traders in sellers
         for cost in traders.redemptions_or_costs
     ]
 
-    # Throw all the redemption values in a list and sort them, then append the
-    # last value again for graphing
+    # Throw all the redemption values in a list and sort them
     redemptions = [
         redemption
         for traders in bidders
@@ -63,12 +61,11 @@ def find_equilibrium(costs, redemptions) -> tuple:
     # If an equilibrium can't be found, this should hide that
     return (-1, -1)
 
-def plot_supply_demand(list_of_traders, min_price=None, max_price=None, ax=None):
+def plot_supply_demand(costs, redemptions, min_price=None, max_price=None, ax=None):
     # Gets the current axis, useful in order to plot this graph on its own or
     # next to another graph
     ax = ax or plt.gca()
 
-    costs, redemptions = values_from_traders(list_of_traders)
     equilibrium_quantity, equilibrium_price = find_equilibrium(costs, redemptions)
 
     # Funny stuff to graph things correctly
@@ -157,8 +154,8 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
 def plot_supply_demand_and_transactions(list_of_traders, prices, min_price = None, max_price = None):
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
 
-    plot_supply_demand(list_of_traders, min_price=min_price, max_price=max_price, ax=ax1)
     costs, redemptions = values_from_traders(list_of_traders)
+    plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax1)
     plot_transactions(prices, equilibrium_price=find_equilibrium(costs, redemptions)[1], min_price=min_price, max_price=max_price, ax=ax2)
     plt.show()
 
