@@ -37,13 +37,14 @@ if max_price < 0:
 
 if num_traders <= 0:
     raise ValueError("num_traders must be greater than 0")
+if num_traders % 2 != 0:
+    raise ValueError("num_traders must be even (should be the same number of buyers as bidders)")
 
 if periods <= 0:
     raise ValueError("periods must be greater than 0")
 
-if num_traders % 2 != 0:
-    raise ValueError("num_traders must be even (should be the same number of buyers as bidders)")
-
+if len(costs) != len(redemption_values):
+    raise ValueError(f"The length of the costs {len(costs)} must be equal to the length of redemption_values {len(costs)}")
 if len(costs) == 0:
     costs = None
 if len(redemption_values) == 0:
