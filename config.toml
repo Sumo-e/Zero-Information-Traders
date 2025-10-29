@@ -1,6 +1,6 @@
 min_price = 1
 max_price = 200
-num_traders = 6
+num_traders = 4
 periods = 6
 constrained = true
 
@@ -12,7 +12,7 @@ costs = []
 redemption_values = []
 
 [misc]
-num_commodities = 25
+num_commodities = 20
 timeout = 1
 # Set to 0 for no seed
 random_seed = 0
@@ -21,5 +21,5 @@ quiet = true
 # 1 for supply/demand graph
 # 2 for transactions graph
 # 3 for both graphs
-# 4 for both graphs for unconstrained and constrained traders
+# 4 for both graphs for both unconstrained and constrained traders
 graphs = 4

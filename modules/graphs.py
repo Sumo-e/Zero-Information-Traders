@@ -21,21 +21,6 @@ def values_from_traders(list_of_traders) -> tuple:
 
     return (costs, redemptions)
 
-# *args at the beginning because: if only 1 list gets inputted, we know that
-# it corresponds to list_of_traders; if 2 lists get inputted we know that
-# they're costs and redemptions. However, the user can still use keyword
-# arguments insteadj
-#def find_equilibrium(*args, costs = None, redemptions = None, list_of_traders = None) -> tuple:
-#    if type(args) != list or tuple:
-#        raise TypeError("Not a list")
-#    if list_of_traders == None and len(args) == 0:
-#        # Need at least one of both costs and redemptions
-#        if type(costs) == None and type(redemptions) != None:
-#            raise ValueError("Need costs as well as redemptinos")
-#        if type(costs) != None and type(redemptions) == None:
-#            raise ValueError("Need redemptions as well as costs")
-
-# We could do the above, but who cares
 def find_equilibrium(costs, redemptions) -> tuple:
     if type(costs) != list:
         raise ValueError("Costs must be a list")
@@ -63,10 +48,7 @@ def find_equilibrium(costs, redemptions) -> tuple:
 
 def plot_supply_demand(costs, redemptions, min_price=None, max_price=None, ax=None):
     # Is this being graphed on its own?
-    if ax == None:
-        single_graph = True
-    else:
-        single_graph = False
+    single_graph = True if ax == None else False
 
     # Gets the current axis, useful in order to plot this graph on its own or
     # next to another graph
@@ -85,6 +67,7 @@ def plot_supply_demand(costs, redemptions, min_price=None, max_price=None, ax=No
     enum = [_ for _ in range(len(costs))]
 
     # Making the graph a little fancier
+    ax.set_title("Supply and Demand Schedules")
     ax.step(enum, costs, color = 'blue')
     ax.step(enum, redemptions, color = 'red')
     ax.set_xlim(0, len(enum)-1)
@@ -112,10 +95,7 @@ def plot_supply_demand(costs, redemptions, min_price=None, max_price=None, ax=No
 
 def plot_transactions(transaction_history, equilibrium_price: None|int = None, min_price = None, max_price = None, ax = None):
     # Is this being graphed on its own?
-    if ax == None:
-        single_graph = True
-    else:
-        single_graph = False
+    single_graph = True if ax == None else False
 
     # Gets the current axis, useful in to plot this graph on its own or
     # next to another graph
@@ -137,6 +117,7 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
             period_lengths[i] += period_lengths[i-1]
     
     # Making the graph a little prettier
+    ax.set_title("Transaction Prices")
     ax.set_xlim(1, len(transaction_history))
     if min_price == None:
         min_price = min(transaction_history) - 1
@@ -144,10 +125,10 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
         max_price = max(transaction_history) + 1
     ax.set_ylim(min_price, max_price)
     # x range goes from 1 to len(transaction_history)+1
-    ax.plot(range(1, len(transaction_history)+1), transaction_history)
+    ax.plot(range(1, len(transaction_history)+1), transaction_history, zorder=3)
 
     if type(period_lengths) != None:
-        plt.vlines(period_lengths[:-1],
+        ax.vlines(period_lengths[:-1],
                    ymin=min_price,
                    ymax=max_price,
                    color='black',
@@ -163,37 +144,54 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
     if single_graph == True:
         plt.show()
 
-def plot_supply_demand_and_transactions(list_of_traders, prices, min_price = None, max_price = None, ax = None):
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
+def plot_supply_demand_and_transactions(list_of_traders, prices, min_price = None, max_price = None, axs = None):
+    # Is this being graphed on its own?
+    single_graph = True if axs == None else False
+
+    if single_graph:
+        fig = plt.figure(constrained_layout=True)
+        (ax1, ax2) = fig.subplots(nrows=1, ncols=2)
+    else:
+        ax1, ax2 = axs # Ignore dumb error, ax should be passed as a tuple # type: ignore
+
+
+    plt.title(f"ZI traders {'with' if list_of_traders[0].constrained else 'without'} Budget Constraint")
 
     costs, redemptions = values_from_traders(list_of_traders)
     plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax1)
     equilibrium_price = find_equilibrium(costs, redemptions)[1]
     plot_transactions(prices, equilibrium_price=equilibrium_price, min_price=min_price, max_price=max_price, ax=ax2)
 
-    plt.show()
+    if single_graph == True:
+        plt.show()
 
 def big_graph(list_of_traders, prices, min_price = None, max_price = None):
     import random
     import modules.market as market
     import modules.config as config
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
+
+    fig = plt.figure(constrained_layout=True)
+    (top, bottom) = fig.subfigures(nrows=2, ncols=1)
+    top.suptitle("ZI Traders without Budget Constraint")
+    bottom.suptitle("ZI Traders with Budget Constraint")
+
+    # This logic always puts the unconstrained on top
+    if list_of_traders[0].constrained:
+        ax1, ax2 = top.subplots(nrows=1, ncols=2)
+        ax3, ax4 = bottom.subplots(nrows=1, ncols=2)
+    else:
+        ax3, ax4 = top.subplots(nrows=1, ncols=2)
+        ax1, ax2 = bottom.subplots(nrows=1, ncols=2)
 
     # Normal traders
-    costs, redemptions = values_from_traders(list_of_traders)
-    plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax3)
-    equilibrium_price = find_equilibrium(costs, redemptions)[1]
-    plot_transactions(prices, equilibrium_price=equilibrium_price, min_price=min_price, max_price=max_price, ax=ax4)
+    plot_supply_demand_and_transactions(list_of_traders, prices, min_price, max_price, axs=(ax1, ax2))
 
     # Opposite traders
     random.seed(config.random_seed)
     traders = market.gen_traders(not config.constrained)
     transaction_prices = market.market(traders, timeout=config.timeout, periods=config.periods, quiet=config.quiet)
 
-    costs, redemptions = values_from_traders(traders)
-    plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax1)
-    equilibrium_price = find_equilibrium(costs, redemptions)[1]
-    plot_transactions(transaction_prices, equilibrium_price=equilibrium_price, min_price=min_price, max_price=max_price, ax=ax2)
+    plot_supply_demand_and_transactions(traders, transaction_prices, min_price, max_price, axs=(ax3, ax4))
 
     plt.show()
 
