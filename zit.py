@@ -3,42 +3,9 @@ import modules.market as market
 import modules.graphs as graphs
 import random
 
-# If config.random_seed is None, then it just won't do anything
 random.seed(config.random_seed)
 
-# Makes the traders
-traders = []
-# Bidders
-for _ in range(config.num_traders//2):
-
-    # If no redemptions are given, we can just make them up
-    if config.redemption_values == None:
-        redemption_values = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
-    else:
-        redemption_values = config.redemption_values
-    
-    t = market.Trader(
-        name=f"b{_}",
-        bidder=True,
-        redemptions_or_costs=redemption_values,
-        constrained=config.constrained)
-    traders.append(t)
-# Sellers
-for _ in range(config.num_traders//2):
-    # If no costs are given, we can just make them up
-    if config.costs == None:
-        costs = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
-    else:
-        costs = config.costs
-
-    t = market.Trader(
-        name=f"s{_}",
-        bidder=False,
-        redemptions_or_costs=costs,
-        constrained=config.constrained)
-
-    traders.append(t)
-
+traders = market.gen_traders(config.constrained)
 transaction_prices = market.market(traders, timeout=config.timeout, periods=config.periods, quiet=config.quiet)
 
 # Checks which graphs to plot based off of config.graphs
@@ -51,8 +18,14 @@ if config.graphs == 2:
     graphs.plot_transactions(transaction_prices, equilibrium_price=equilibrium_price, min_price=config.min_price, max_price=config.max_price)
 if config.graphs == 3:
     costs, redemptions = graphs.values_from_traders(traders)
-    equilibrium_price = graphs.find_equilibrium(costs, redemptions)[1]
     graphs.plot_supply_demand_and_transactions(list_of_traders=traders, prices=transaction_prices, min_price=config.min_price, max_price=config.max_price)
+if config.graphs == 4:
+    random.seed(config.random_seed)
+
+    traders = market.gen_traders(not config.constrained)
+    costs, redemptions = graphs.values_from_traders(traders)
+    graphs.big_graph(list_of_traders=traders, prices=transaction_prices, min_price=config.min_price, max_price=config.max_price)
+
 
 ##################################  Example  ##################################
 #b1 = Trader(name = 'b1', bidder = True, redemptions_or_costs = [110, 100, 90])

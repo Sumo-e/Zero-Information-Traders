@@ -21,4 +21,5 @@ quiet = true
 # 1 for supply/demand graph
 # 2 for transactions graph
 # 3 for both graphs
-graphs = 3
+# 4 for both graphs for unconstrained and constrained traders
+graphs = 4

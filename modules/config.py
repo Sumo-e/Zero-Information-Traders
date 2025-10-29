@@ -1,5 +1,6 @@
-import tomllib
+import os
 import random
+import tomllib
 
 with open('config.toml', 'rb') as f:
     # Load in the data
@@ -26,7 +27,8 @@ with open('config.toml', 'rb') as f:
 if type(random_seed) not in  (int, float, str, bytes, bytearray):
     raise TypeError("The only supported types for random_seed are: int, float, str, bytes, and bytearray")
 if random_seed == 0:
-    random_seed = None
+    # Need this for reproducing traders (i.e. for the big graph = 4)
+    random_seed = os.urandom(256)
 random.seed(random_seed)
 
 if min_price > max_price:
@@ -51,5 +53,5 @@ if len(costs) == 0:
 if len(redemption_values) == 0:
     redemption_values = None
 
-if graphs not in [0, 1, 2, 3]:
-    raise ValueError("")
+if graphs not in [0, 1, 2, 3, 4]:
+    raise ValueError("graphs can only be either 0, 1, 2, 3, or 4")

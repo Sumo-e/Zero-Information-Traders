@@ -163,14 +163,43 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
     if single_graph == True:
         plt.show()
 
-def plot_supply_demand_and_transactions(list_of_traders, prices, min_price = None, max_price = None):
+def plot_supply_demand_and_transactions(list_of_traders, prices, min_price = None, max_price = None, ax = None):
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2)
 
     costs, redemptions = values_from_traders(list_of_traders)
     plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax1)
     equilibrium_price = find_equilibrium(costs, redemptions)[1]
     plot_transactions(prices, equilibrium_price=equilibrium_price, min_price=min_price, max_price=max_price, ax=ax2)
+
     plt.show()
+
+def big_graph(list_of_traders, prices, min_price = None, max_price = None):
+    import random
+    import modules.market as market
+    import modules.config as config
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
+
+    # Normal traders
+    costs, redemptions = values_from_traders(list_of_traders)
+    plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax3)
+    equilibrium_price = find_equilibrium(costs, redemptions)[1]
+    plot_transactions(prices, equilibrium_price=equilibrium_price, min_price=min_price, max_price=max_price, ax=ax4)
+
+    # Opposite traders
+    random.seed(config.random_seed)
+    traders = market.gen_traders(not config.constrained)
+    transaction_prices = market.market(traders, timeout=config.timeout, periods=config.periods, quiet=config.quiet)
+
+    costs, redemptions = values_from_traders(traders)
+    plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax1)
+    equilibrium_price = find_equilibrium(costs, redemptions)[1]
+    plot_transactions(transaction_prices, equilibrium_price=equilibrium_price, min_price=min_price, max_price=max_price, ax=ax2)
+
+    plt.show()
+
+
+
+
 
 # Examples
 #from zit import Trader

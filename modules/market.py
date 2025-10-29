@@ -43,6 +43,44 @@ class Trader:
             self.profits.append(price - current_value)
         return self.profits
 
+# All the other parameters get handled by the config file
+# Need for displaying 4 graphs
+def gen_traders(constrained: bool) -> list[Trader]:
+    # Makes the traders
+    traders = []
+    # Bidders
+    for _ in range(config.num_traders//2):
+        # If no redemptions are given, we can just make them up
+        if config.redemption_values == None:
+            redemption_values = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
+        else:
+            redemption_values = config.redemption_values
+        
+        t = Trader(
+            name=f"b{_}",
+            bidder=True,
+            redemptions_or_costs=redemption_values,
+            constrained=constrained)
+        traders.append(t)
+
+    # Sellers
+    for _ in range(config.num_traders//2):
+        # If no costs are given, we can just make them up
+        if config.costs == None:
+            costs = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
+        else:
+            costs = config.costs
+
+        t = Trader(
+            name=f"s{_}",
+            bidder=False,
+            redemptions_or_costs=costs,
+            constrained=constrained)
+
+        traders.append(t)
+
+    return traders
+
 
 def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quiet: bool = True) -> list:
     if traders == []:
