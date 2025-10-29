@@ -1,6 +1,6 @@
-import config
-import market
-import graphs
+import modules.config as config
+import modules.market as market
+import modules.graphs as graphs
 import random
 
 if config.random_seed != None:
@@ -10,15 +10,28 @@ if config.random_seed != None:
 traders = []
 # Bidders
 for _ in range(config.num_traders//2):
-    redemptions = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
+
+    # If no redemptions are given, we can just make them up
+    if config.redemption_values == None:
+        redemption_values = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
+    else:
+        redemption_values = config.redemption_values
+    
     t = market.Trader(
         name=f"b{_}",
         bidder=True,
-        redemptions_or_costs=redemptions,
+        redemptions_or_costs=redemption_values,
         constrained=config.constrained)
     traders.append(t)
 # Sellers
 for _ in range(config.num_traders//2):
+
+    # If no costs are given, we can just make them up
+    if config.costs == None:
+        costs = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
+    else:
+        costs = config.costs
+
     costs = [random.randint(config.min_price, config.max_price) for _ in range(config.num_commodities)]
     t = market.Trader(
         name=f"s{_}",

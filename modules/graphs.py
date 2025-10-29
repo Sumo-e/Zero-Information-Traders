@@ -1,7 +1,4 @@
 import matplotlib.pyplot as plt
-# Following is used for typehinting, not necessary
-# Find out a way to not have circular dependency
-# from zit import Trader
 
 def values_from_traders(list_of_traders) -> tuple:
     # Separating bidders and sellers into two different lists

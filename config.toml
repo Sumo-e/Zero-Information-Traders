@@ -1,0 +1,15 @@
+min_price = 1
+max_price = 200
+num_traders = 6
+periods = 6
+constrained = true
+
+[explicit]
+costs = []
+redemption_values = []
+
+[misc]
+num_commodities = 5
+timeout = 1
+random_seed = 0
+quiet = false

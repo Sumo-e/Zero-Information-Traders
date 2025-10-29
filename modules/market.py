@@ -56,7 +56,7 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
 
     for p in range(periods):
         # I hate mutability
-        # Need to do this in order to not keep using the original traders
+        # Need to do this in order to not keep using the original traders over and over again
         list_of_traders = copy.deepcopy(traders)
 
         if quiet != True:
