@@ -110,7 +110,7 @@ def plot_supply_demand(list_of_traders, min_price=None, max_price=None, ax=None)
     if ax == None:
         plt.show()
 
-def plot_transactions(transaction_history, equilibrium_price: None|int|float = None, min_price = None, max_price = None, ax = None):
+def plot_transactions(transaction_history, equilibrium_price: None|int = None, min_price = None, max_price = None, ax = None):
     # Gets the current axis, useful in to plot this graph on its own or
     # next to another graph
     ax = ax or plt.gca()
@@ -149,7 +149,7 @@ def plot_transactions(transaction_history, equilibrium_price: None|int|float = N
 
     # If the equilibrium price is given, then graph it
     if type(equilibrium_price) != None:
-        ax.hlines(y=equilibrium_price,  # Ignore dumb error
+        ax.hlines(y=equilibrium_price,  # Ignore dumb error # type: ignore
                 xmin=1,
                 xmax=len(transaction_history)+1,
                 color='black')
