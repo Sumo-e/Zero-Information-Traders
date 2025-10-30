@@ -6,10 +6,10 @@ constrained = true
 
 [explicit]
 # Fig 3
-#costs = [90, 90, 90, 95, 95, 95, 100, 100, 100]
-#redemption_values = [135, 135, 135, 95, 95, 95, 90, 90, 90]
-costs = []
-redemption_values = []
+costs = [90, 90, 90, 95, 95, 95, 100, 100, 100]
+redemption_values = [135, 135, 135, 95, 95, 95, 90, 90, 90]
+#costs = []
+#redemption_values = []
 
 [misc]
 num_commodities = 20

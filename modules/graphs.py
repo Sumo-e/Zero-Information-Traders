@@ -72,7 +72,7 @@ def plot_supply_demand(costs, redemptions, min_price=None, max_price=None, ax=No
     ax.step(enum, redemptions, color = 'red')
     ax.set_xlim(0, len(enum)-1)
     if min_price == None:
-        min_price = min(costs.append + redemptions)
+        min_price = min(costs + redemptions)
     if max_price == None:
         max_price = max(costs + redemptions)
     ax.set_ylim(min_price, max_price)
@@ -89,6 +89,7 @@ def plot_supply_demand(costs, redemptions, min_price=None, max_price=None, ax=No
             color='black',
             linestyles='dashed')
 
+    ax.set_box_aspect(1)
     # Prevents plotting too early when doing the side-by-side plot
     if single_graph == True:
         plt.show()
@@ -125,7 +126,7 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
         max_price = max(transaction_history) + 1
     ax.set_ylim(min_price, max_price)
     # x range goes from 1 to len(transaction_history)+1
-    ax.plot(range(1, len(transaction_history)+1), transaction_history, zorder=3)
+    ax.plot(range(1, len(transaction_history)+1), transaction_history)
 
     if type(period_lengths) != None:
         ax.vlines(period_lengths[:-1],
@@ -141,6 +142,8 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
                 xmax=len(transaction_history)+1,
                 color='black')
     
+    ax.set_box_aspect(0.5)
+    # Prevents plotting too early when doing the side-by-side plot
     if single_graph == True:
         plt.show()
 
@@ -150,18 +153,17 @@ def plot_supply_demand_and_transactions(list_of_traders, prices, min_price = Non
 
     if single_graph:
         fig = plt.figure(constrained_layout=True)
-        (ax1, ax2) = fig.subplots(nrows=1, ncols=2)
+        plt.suptitle(f"ZI traders {'with' if list_of_traders[0].constrained else 'without'} Budget Constraint")
+        ax1, ax2 = fig.subplots(nrows=1, ncols=2, width_ratios=[1, 2])
     else:
         ax1, ax2 = axs # Ignore dumb error, ax should be passed as a tuple # type: ignore
-
-
-    plt.title(f"ZI traders {'with' if list_of_traders[0].constrained else 'without'} Budget Constraint")
 
     costs, redemptions = values_from_traders(list_of_traders)
     plot_supply_demand(costs, redemptions, min_price=min_price, max_price=max_price, ax=ax1)
     equilibrium_price = find_equilibrium(costs, redemptions)[1]
     plot_transactions(prices, equilibrium_price=equilibrium_price, min_price=min_price, max_price=max_price, ax=ax2)
 
+    # Prevents plotting too early when doing the 2x2 plot
     if single_graph == True:
         plt.show()
 
@@ -177,11 +179,11 @@ def big_graph(list_of_traders, prices, min_price = None, max_price = None):
 
     # This logic always puts the unconstrained on top
     if list_of_traders[0].constrained:
-        ax1, ax2 = top.subplots(nrows=1, ncols=2)
-        ax3, ax4 = bottom.subplots(nrows=1, ncols=2)
+        ax1, ax2 = top.subplots(nrows=1, ncols=2, width_ratios=[1, 2])
+        ax3, ax4 = bottom.subplots(nrows=1, ncols=2, width_ratios=[1, 2])
     else:
-        ax3, ax4 = top.subplots(nrows=1, ncols=2)
-        ax1, ax2 = bottom.subplots(nrows=1, ncols=2)
+        ax3, ax4 = top.subplots(nrows=1, ncols=2, width_ratios=[1, 2])
+        ax1, ax2 = bottom.subplots(nrows=1, ncols=2, width_ratios=[1, 2])
 
     # Normal traders
     plot_supply_demand_and_transactions(list_of_traders, prices, min_price, max_price, axs=(ax1, ax2))
