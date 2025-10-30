@@ -4,4 +4,4 @@ Graph from Gode & Sunder:
 
 Graph from code:
 
-<img width="640" height="480" alt="Figure_1" src="https://github.com/user-attachments/assets/cfcda2b5-3768-45d8-8803-c485cbb89e8c" />
+<img width="640" height="480" alt="Figure_1" src="https://github.com/user-attachments/assets/74a460c7-5087-46a9-8b3c-534a2d38addb" />
