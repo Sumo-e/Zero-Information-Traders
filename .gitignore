@@ -1,6 +1,7 @@
 
 # Fra
-*.pdf
+Gode and Sunder-JPE.pdf
+ZIT.pdf
 .venv
 __pycache__
 test.py
