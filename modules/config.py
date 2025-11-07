@@ -32,7 +32,7 @@ if random_seed == 0:
 random.seed(random_seed)
 
 if min_price > max_price:
-    raise ValueError("min_price must be lesser than max_price")
+    raise ValueError("min_price must be less than max_price")
 if min_price < 0:
     raise ValueError("min_price must be greater than 0")
 if max_price < 0:
@@ -47,7 +47,7 @@ if periods <= 0:
     raise ValueError("periods must be greater than 0")
 
 if len(costs) != len(redemption_values):
-    raise ValueError(f"The length of the costs {len(costs)} must be equal to the length of redemption_values {len(costs)}")
+    raise ValueError(f"The length of the costs {len(costs)} must be equal to the length of redemption_values {len(redemption_values)}")
 if len(costs) == 0:
     costs = None
 if len(redemption_values) == 0:
