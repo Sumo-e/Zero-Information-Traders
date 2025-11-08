@@ -5,7 +5,7 @@
 - [ ] In `config.py`, simplify the code so that there are no functions, and that there's a logical order of operations (validation for `max_price` should be next to the validation for `min_price`, for example)
     - [ ] Add more comments to `config.py` so it's easier to understand what each validation is doing or what the validation is for (e.g. "Validation for prices")
 - [ ] Check that what happens when `graphs = 4` makes sense (I think we might be running the market function one too many times, or switching between constrained and unconstrained traders one too many times)
-    - [ ] Code it will always put the unconstrained traders at the top row and constrained traders on the bottom row? (Right now whatever the user configured is on the bottom row and the opposite is on the top row, I think)
+    - [ ] Code it so it will always put the unconstrained traders at the top row and constrained traders on the bottom row? (Right now whatever the user configured is on the bottom row and the opposite is on the top row, I think)
 - [ ] Add costs and redemption values that mimic the figures in the paper into `config.toml`
 - [ ] Figure out a way to solve the mutability problem in `market.py` (line 98) so that we can get rid of the copy module?
 - [ ] Check if the `plot_supply_demand()` and `plot_transactions()` functions actually need to check whether the equilibrium price exists (if the equilibrium price didn't exist, the equilibrium lines would just be plot in a place where nobody's looking). If we actually do need to check for it:
