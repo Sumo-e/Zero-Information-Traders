@@ -1,5 +1,5 @@
 # Todo:
-- [ ] Rename `zit.py` to `main.py`
+- [x] Rename `zit.py` to `main.py`
 - [ ] Make sure that `config.py` is validating everything for any scenario (try putting weird values in `config.toml` and check that `config.py` handles them correctly)
 - [ ] In `config.py`, there's no good reason to use `os.urandom(256)` instead of a random value from the `random` module to assign a value to `random_seed` (line 31) so we should just get rid of the `os` module
 - [ ] Check that what happens when `graphs = 4` makes sense (I think we might be running the market function one too many times, or switching between constrained and unconstrained traders one too many times)
