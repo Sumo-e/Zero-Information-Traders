@@ -2,6 +2,8 @@
 - [x] Rename `zit.py` to `main.py`
 - [x] Make sure that `config.py` is validating everything for any scenario (try putting weird values in `config.toml` and check that `config.py` handles them correctly)
 - [x] In `config.py`, there's no good reason to use `os.urandom(256)` instead of a random value from the `random` module to assign a value to `random_seed` (line 31) so we should just get rid of the `os` module
+- [ ] In `config.py`, simplify the code so that there are no functions, and that there's a logical order of operations (validation for `max_price` should be next to the validation for `min_price`, for example)
+    - [ ] Add more comments to `config.py` so it's easier to understand what each validation is doing or what the validation is for (e.g. "Validation for prices")
 - [ ] Check that what happens when `graphs = 4` makes sense (I think we might be running the market function one too many times, or switching between constrained and unconstrained traders one too many times)
     - [ ] Code it will always put the unconstrained traders at the top row and constrained traders on the bottom row? (Right now whatever the user configured is on the bottom row and the opposite is on the top row, I think)
 - [ ] Add costs and redemption values that mimic the figures in the paper into `config.toml`
