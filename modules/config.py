@@ -1,4 +1,3 @@
-import os
 import random
 import tomllib
 
@@ -28,7 +27,7 @@ if type(random_seed) not in  (int, float, str, bytes, bytearray):
     raise TypeError("The only supported types for random_seed are: int, float, str, bytes, and bytearray")
 if random_seed == 0:
     # Need this for reproducing traders (i.e. for the big graph = 4)
-    random_seed = os.urandom(256)
+    random_seed = random.randint(0, 2**32 - 1)
 random.seed(random_seed)
 
 if min_price > max_price:
