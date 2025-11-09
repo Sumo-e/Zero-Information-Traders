@@ -12,6 +12,7 @@
     - [ ] For the `plot_transactions()` function in `graphs.py`, line 139 checks whether the equilibrium price is -1 instead of None, which is bad, since when the `find_equilibrium()` function doesn't find an equilibrium it returns an equilibrium price of -1. The solution to this is either making `find_equilibrium()` return None when it can't find an equilibrium (remember to change the typehint for the function's output!) or making `plot_transactions()` check for -1 instead of None.
     - [ ] Make the `plot_supply_demand()` check whether the equilibrium exists before plotting it
 - [ ] Check which functions have parameters that don't need to be there (some of the functions in `market.py` look pretty suspect)
+- [ ] Look into using function decorators (Lesson 13) for the `plot_supply_demand_and_transactions()` and `big_graph()` functions
 - [ ] Make sure that the files follow [PEP 8 - Style Guide for Python Code](https://peps.python.org/pep-0008/)
 
 
