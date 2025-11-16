@@ -242,32 +242,81 @@ class Trader:
             constrained=self.constrained,
         )
         return t
-        
-    def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quiet: bool = True) -> list:
+
+def gen_traders(constrained: bool) -> list[Trader]:
+    traders: list[Trader] = []
+
+    for i in range(config.num_traders // 2):
+
+        # Only generate random redemption values if not provided in config
+        # Prevents overwriting explicit data from config.toml
+        if config.redemption_values is None:
+            redemption_values = [
+                random.randint(config.min_price, config.max_price)
+                for _ in range(config.num_commodities)
+            ]
+        else:
+            redemption_values = list(config.redemption_values)  # Defensive copy to avoid shared mutable state
+
+        # Convert to tuple → immutable structural data, no accidental mutation
+        t = Trader(
+            name=f"b{i}",                          # Consistent buyer naming convention (b0, b1, ...)
+            bidder=True,
+            redemptions_or_costs=tuple(redemption_values),
+            constrained=constrained,              # Propagate constrained flag explicitly
+        )
+        traders.append(t)
+
+    for i in range(config.num_traders // 2):
+
+        # Only generate random costs if not provided in config
+        if config.costs is None:
+            costs = [
+                random.randint(config.min_price, config.max_price)
+                for _ in range(config.num_commodities)
+            ]
+        else:
+            costs = list(config.costs)  # Defensive copy to prevent aliasing with config data
+
+        # Convert to tuple (immutable)
+        t = Trader(
+            name=f"s{i}",                          # Consistent seller naming convention (s0, s1, ...)
+            bidder=False,
+            redemptions_or_costs=tuple(costs),
+            constrained=constrained,              # Pass constraint flag to every trader
+        )
+        traders.append(t)
+
+    # Return a complete, independent trader population (half buyers, half sellers)
+    return traders
+    
+def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quiet: bool = True) -> list:
     if traders == []:
         raise ValueError("Empty list")
 
     transaction_prices = []
 
     for p in range(periods):
-        list_of_traders = [t.fresh_instance() for t in traders]  # Replace deepcopy with per-period fresh instances -> immutable structural data + reset mutable state
+        # Replace deepcopy with per-period fresh instances -> immutable structural data + reset mutable state
+        list_of_traders = [t.fresh_instance() for t in traders]
 
-        if quiet != True:
+        if not quiet:
             print(f"Transaction ledger {p+1}:")
             print("Bid\tBidder\tAsk\tSeller\tPrice\tBidder profit\tSeller profit")
 
         period_prices = []
 
-         # Initialize bid/ask inside each period (not once before all periods)
+        # Initialize bid/ask inside each period (not once before all periods)
         bid = config.min_price - 1
-        ask = config.max_price + 1 
+        ask = config.max_price + 1
         price = 0
 
         start = time.time()
 
         while time.time() < start + timeout:
-            has_bidder = any(t.is_bidder and len(t.profits) < len(t.redemptions_or_costs) for t in list_of_traders)  # CHANGED: recompute availability dynamically each loop
-            has_seller = any((not t.is_bidder) and len(t.profits) < len(t.redemptions_or_costs) for t in list_of_traders)  # CHANGED: recompute availability dynamically each loop
+            # Recompute availability dynamically each loop
+            has_bidder = any(t.is_bidder and len(t.profits) < len(t.redemptions_or_costs) for t in list_of_traders)
+            has_seller = any((not t.is_bidder) and len(t.profits) < len(t.redemptions_or_costs) for t in list_of_traders)
             if not (has_bidder and has_seller):
                 break  # Terminate based on live availability, not a stale boolean list
 
@@ -275,7 +324,7 @@ class Trader:
 
             if len(trader.profits) == len(trader.redemptions_or_costs):
                 list_of_traders.remove(trader)
-                if quiet != True:
+                if not quiet:
                     print(f"~~~{trader.name} was removed with {trader.profits=}")
                 continue
 
@@ -297,7 +346,7 @@ class Trader:
                 last_seller.transact(price)
                 period_prices.append(price)
 
-                if quiet != True:
+                if not quiet:
                     print(f"{bid:3}\t"
                           f"{last_bidder.name[:7]:^7}\t"
                           f"{ask:3}\t"
@@ -306,11 +355,12 @@ class Trader:
                           f"{last_bidder.profits[-1]:7}\t\t"
                           f"{last_seller.profits[-1]:7}")
 
-                bid = config.min_price - 1  # Reset quotes after each trade within the period
-                ask = config.max_price + 1  # Reset quotes after each trade within the period
+                # Reset quotes after each trade within the period
+                bid = config.min_price - 1
+                ask = config.max_price + 1
                 price = 0
 
-        if quiet != True:
+        if not quiet:
             if time.time() > start + timeout:
                 print(TimeoutError(f"Timed out at {timeout} seconds."))
             else:
