@@ -1,4 +1,5 @@
 import random
+import os
 from pathlib import Path
 
 try:
@@ -14,26 +15,41 @@ with cfg_path.open('rb') as f:
     # Load in the data
     config = tomllib.load(f)
 
+    # tolerate missing subsections
+    explicit = config.get('explicit', {})
+    misc = config.get('misc', {})
+
+    # required top-level keys with strict casting
     min_price = int(config['min_price'])
     max_price = int(config['max_price'])
     num_traders = int(config['num_traders'])
     periods = int(config['periods'])
     constrained = bool(config['constrained'])
 
-    # explicit
-    costs = sorted(list(config['explicit']['costs']))
-    redemption_values = sorted(list(config['explicit']['redemption_values']), reverse=True)
+    # explicit lists: accept missing -> [], validate numeric, sort only if non-empty
+    _costs = explicit.get('costs') or []
+    if not all(isinstance(x, (int, float)) for x in _costs):
+        raise ValueError("explicit.costs must be numbers")
+    _costs = [int(x) for x in _costs]  # ensure integer price grid consistency
+    costs = sorted(_costs) if _costs else [] # avoid pointless sort on empty
 
-    # misc.
-    num_commodities = int(config['misc']['num_commodities'])
-    timeout = int(config['misc']['timeout'])
-    quiet = bool(config['misc']['quiet'])
-    random_seed = config['misc']['random_seed']
-    graphs = int(config['misc']['graphs'])
+    _reds = explicit.get('redemption_values') or []
+    if not all(isinstance(x, (int, float)) for x in _reds):
+        raise ValueError("explicit.redemption_values must be numbers")
+    _reds = [int(x) for x in _reds]
+    redemption_values = sorted(_reds, reverse=True) if _reds else []
+
+    # misc with safe defaults and strict casting
+    num_commodities = int(misc.get('num_commodities', 1))
+    timeout = int(misc.get('timeout', 1))
+    quiet = bool(misc.get('quiet', False))
+    random_seed = misc.get('random_seed', 0)
+    graphs = int(misc.get('graphs', 0))
 
 # Validation and setting defaults
 if not isinstance(random_seed, (int, float, str, bytes, bytearray, type(None))):
-    raise TypeError("The only supported types for random_seed are: int, float, str, bytes, and bytearray")
+    raise TypeError(f"random_seed must be int/float/str/bytes/bytearray/None, got {type(random_seed).__name__}")
+
 if random_seed == 0:
     # Need this for reproducing traders (i.e. for the big graph = 4)
     random_seed = random.randint(0, 2**32 - 1)
@@ -46,23 +62,34 @@ if max_price < 1:
 if min_price > max_price:
     raise ValueError(f"min_price ({min_price}) must be ≤ max_price ({max_price})")
 
-if num_traders <= 0:
-    raise ValueError("num_traders must be greater than 0")
-if num_traders % 2 != 0:
-    raise ValueError("num_traders must be even (should be the same number of buyers as bidders)")
+if num_traders < 2 or num_traders % 2 != 0:
+    raise ValueError("num_traders must be an even integer ≥ 2")
 
 if periods <= 0:
-    raise ValueError("periods must be greater than 0")
+    raise ValueError(f"periods must be > 0, got {periods}")
+
+if num_commodities <= 0:
+    raise ValueError(f"num_commodities must be > 0, got {num_commodities}")
 
 if len(costs) != len(redemption_values):
     raise ValueError(f"The length of the costs {len(costs)} must be equal to the length of redemption_values {len(redemption_values)}")
+
+# keep explicit schedules within the declared price grid
+if costs and any(c < min_price or c > max_price for c in costs):
+    raise ValueError("explicit.costs contain values outside [min_price, max_price]")
+if redemption_values and any(v < min_price or v > max_price for v in redemption_values):
+    raise ValueError("explicit.redemption_values contain values outside [min_price, max_price]")
+
+# normalize empties to None
 if not costs:
     costs = None
 if not redemption_values:
     redemption_values = None
 
-if graphs not in [0, 1, 2, 3, 4]:
-    raise ValueError("graphs can only be either 0, 1, 2, 3, or 4")
+if graphs not in (0, 1, 2, 3, 4):
+    raise ValueError(f"graphs must be one of 0,1,2,3,4, got {graphs}")
+
+
 import random
 import tomllib
 
