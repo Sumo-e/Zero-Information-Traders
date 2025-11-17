@@ -1,7 +1,16 @@
 import random
-import tomllib
+from pathlib import Path
 
-with open('config.toml', 'rb') as f:
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:
+    import tomli as tomllib  # type: ignore
+
+cfg_path = Path(os.environ.get("ZIT_CONFIG_PATH", Path(__file__).with_name("config.toml")))  # No CWD fragility
+if not cfg_path.exists():
+    raise FileNotFoundError(f"Missing config file: {cfg_path}")  # Explicit, actionable error
+
+with cfg_path.open('rb') as f:
     # Load in the data
     config = tomllib.load(f)
 
@@ -23,19 +32,19 @@ with open('config.toml', 'rb') as f:
     graphs = int(config['misc']['graphs'])
 
 # Validation and setting defaults
-if type(random_seed) not in  (int, float, str, bytes, bytearray):
+if not isinstance(random_seed, (int, float, str, bytes, bytearray, type(None))):
     raise TypeError("The only supported types for random_seed are: int, float, str, bytes, and bytearray")
 if random_seed == 0:
     # Need this for reproducing traders (i.e. for the big graph = 4)
     random_seed = random.randint(0, 2**32 - 1)
 random.seed(random_seed)
 
+if min_price < 1:
+    raise ValueError(f"min_price must be ≥ 1, got {min_price}")
+if max_price < 1:
+    raise ValueError(f"max_price must be ≥ 1, got {max_price}")
 if min_price > max_price:
-    raise ValueError("min_price must be less than max_price")
-if min_price < 0:
-    raise ValueError("min_price must be greater than 0")
-if max_price < 0:
-    raise ValueError("max_price must be greater than 0")
+    raise ValueError(f"min_price ({min_price}) must be ≤ max_price ({max_price})")
 
 if num_traders <= 0:
     raise ValueError("num_traders must be greater than 0")
@@ -47,9 +56,9 @@ if periods <= 0:
 
 if len(costs) != len(redemption_values):
     raise ValueError(f"The length of the costs {len(costs)} must be equal to the length of redemption_values {len(redemption_values)}")
-if len(costs) == 0:
+if not costs:
     costs = None
-if len(redemption_values) == 0:
+if not redemption_values:
     redemption_values = None
 
 if graphs not in [0, 1, 2, 3, 4]:
