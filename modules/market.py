@@ -177,6 +177,8 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
 import random
 import time
 import modules.config as config
+from typing import Optional
+
 
 class Trader:
     def __init__(self, name: str = "", bidder: bool = True,
@@ -205,13 +207,16 @@ class Trader:
 
         self.profits: list[int] = []
 
-        self.offer = self.gen_offer()
-
+        # Guard against empty schedules to avoid IndexError in gen_offer
+        if len(self.redemptions_or_costs) == 0:
+            self.offer = None  # type: Optional[int]
+        else:
+            self.offer = self.gen_offer()
     
-    def gen_offer(self):
-        # The current value/cost corresponds to how many units this trader has already traded
-        current_value = self.redemptions_or_costs[len(self.profits)]
-
+    def gen_offer(self) -> int:
+        # Safe if schedule exhausted: caller must check before calling
+        idx = len(self.profits)
+        current_value = self.redemptions_or_costs[idx]
         # Constrained buyers → cannot bid above their redemption value
         # Constrained sellers → cannot ask below their cost
         # Unconstrained → can choose any price within market range
@@ -223,9 +228,10 @@ class Trader:
             self.offer = random.randrange(config.min_price, config.max_price + 1)
         return self.offer
 
-    def transact(self, price):
+    def transact(self, price: int) -> list[int]:
+        idx = len(self.profits)
         # Compute profit for this transaction and append it
-        current_value = self.redemptions_or_costs[len(self.profits)]
+        current_value = self.redemptions_or_costs[idx]
         if self.is_bidder:
             self.profits.append(current_value - price)
         else:
@@ -242,9 +248,11 @@ class Trader:
             constrained=self.constrained,
         )
         return t
-
-def gen_traders(constrained: bool) -> list[Trader]:
+        
+# Remove parameter; read from config ---
+def gen_traders() -> list[Trader]:
     traders: list[Trader] = []
+    constrained = config.constrained
 
     for i in range(config.num_traders // 2):
 
@@ -290,11 +298,24 @@ def gen_traders(constrained: bool) -> list[Trader]:
     # Return a complete, independent trader population (half buyers, half sellers)
     return traders
     
-def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quiet: bool = True) -> list:
-    if traders == []:
-        raise ValueError("Empty list")
+def market(traders: Optional[list[Trader]] = None,
+           timeout: Optional[int] = None,
+           periods: Optional[int] = None,
+           quiet: Optional[bool] = None) -> list[list[int]]:
 
-    transaction_prices = []
+    if traders is None:
+        traders = gen_traders()
+    if timeout is None:
+        timeout = config.timeout
+    if periods is None:
+        periods = config.periods
+    if quiet is None:
+        quiet = config.quiet
+    # Avoid mutable default; enforce non-empty input
+    if not traders:
+        raise ValueError("traders must be a non-empty list of Trader instances")
+
+    transaction_prices: list[list[int]] = []
 
     for p in range(periods):
         # Replace deepcopy with per-period fresh instances -> immutable structural data + reset mutable state
@@ -304,44 +325,46 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
             print(f"Transaction ledger {p+1}:")
             print("Bid\tBidder\tAsk\tSeller\tPrice\tBidder profit\tSeller profit")
 
-        period_prices = []
+        period_prices: list[int] = []
 
         # Initialize bid/ask inside each period (not once before all periods)
         bid = config.min_price - 1
         ask = config.max_price + 1
         price = 0
+        last_bidder: Optional[Trader] = None
+        last_seller: Optional[Trader] = None
 
-        start = time.time()
+        start = time.monotonic()  # monotonic clock avoids wall-clock jumps
+        deadline = start + timeout
 
-        while time.time() < start + timeout:
-            # Recompute availability dynamically each loop
-            has_bidder = any(t.is_bidder and len(t.profits) < len(t.redemptions_or_costs) for t in list_of_traders)
-            has_seller = any((not t.is_bidder) and len(t.profits) < len(t.redemptions_or_costs) for t in list_of_traders)
-            if not (has_bidder and has_seller):
-                break  # Terminate based on live availability, not a stale boolean list
-
+        while time.monotonic() < deadline:
+            # filter out exhausted traders before selection
+            list_of_traders = [t for t in list_of_traders if len(t.profits) < len(t.redemptions_or_costs)]
+            
+            if not list_of_traders:
+                break    # No active traders remain
+            
+            # Fast availability check
+            if (not any(t.is_bidder for t in list_of_traders)    # No active buyers
+                    or not any((not t.is_bidder) for t in list_of_traders)):  # No active sellers
+                break  
+                
             trader = random.choice(list_of_traders)
 
-            if len(trader.profits) == len(trader.redemptions_or_costs):
-                list_of_traders.remove(trader)
-                if not quiet:
-                    print(f"~~~{trader.name} was removed with {trader.profits=}")
-                continue
-
-            trader.gen_offer()
+            offer = trader.gen_offer()
 
             if trader.is_bidder:
-                if trader.offer > bid:
-                    bid = trader.offer
+                if offer > bid:
+                    bid = offer
                     price = ask
                     last_bidder = trader
             else:
-                if trader.offer < ask:
-                    ask = trader.offer
+                if offer < ask:
+                    ask = offer
                     price = bid
                     last_seller = trader
 
-            if bid >= ask:
+            if bid >= ask and last_bidder is not None and last_seller is not None:
                 last_bidder.transact(price)
                 last_seller.transact(price)
                 period_prices.append(price)
@@ -359,9 +382,11 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
                 bid = config.min_price - 1
                 ask = config.max_price + 1
                 price = 0
+                last_bidder = None
+                last_seller = None
 
         if not quiet:
-            if time.time() > start + timeout:
+            if time.monotonic() >= deadline:
                 print(TimeoutError(f"Timed out at {timeout} seconds."))
             else:
                 print("Buyers/Sellers exhausted their supports")
