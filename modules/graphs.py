@@ -112,7 +112,7 @@ def plot_transactions(transaction_history, equilibrium_price: None|int = None, m
             for price in period
         ]
         # Find the length of the periods (0.5 makes line go between end/beginning of two periods)
-        period_lengths = [len(periods) + 0.5 for _, periods in enum]
+        period_lengths = [len(periods) for _, periods in enum]
 
         for i in range(1, len(period_lengths)):
             period_lengths[i] += period_lengths[i-1]
