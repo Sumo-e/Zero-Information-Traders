@@ -1,3 +1,10 @@
+# How to run the code:
+1. Download the code
+2. Create the virtual environment (`python -m venv .venv`)
+3. Activate the virtual environment
+4. Download the required libraries (`python -m pip install -r requirements.txt`)
+5. Run `main.py`
+
 # Todo:
 - [x] Rename `zit.py` to `main.py`
 - [x] Make sure that `config.py` is validating everything for any scenario (try putting weird values in `config.toml` and check that `config.py` handles them correctly)
