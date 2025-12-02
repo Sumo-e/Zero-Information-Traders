@@ -86,10 +86,7 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
     if traders == []:
         raise ValueError("Empty list")
 
-    # Initializing these values
-    bid = config.min_price - 1 # All bids will be higher than this
-    ask = config.max_price + 1 # All asks will be lower than this
-    price = 0
+    # This is eventually the output of this function
     transaction_prices = []
 
     for p in range(periods):
@@ -101,6 +98,10 @@ def market(traders: list[Trader] = [], timeout: int = 30, periods: int = 1, quie
             print(f"Transaction ledger {p+1}:")
             print("Bid\tBidder\tAsk\tSeller\tPrice\tBidder profit\tSeller profit")
 
+        # Initializing these values
+        bid = config.min_price - 1 # All bids will be higher than this
+        ask = config.max_price + 1 # All asks will be lower than this
+        price = 0
         # Keep track of prices in each period
         period_prices = []
 
